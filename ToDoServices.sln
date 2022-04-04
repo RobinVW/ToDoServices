@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WEB4-ToDoServices", "WEB4-ToDoServices\WEB4-ToDoServices.csproj", "{F0721954-6CED-40D7-A89F-4FB764735100}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F0721954-6CED-40D7-A89F-4FB764735100}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0721954-6CED-40D7-A89F-4FB764735100}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0721954-6CED-40D7-A89F-4FB764735100}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0721954-6CED-40D7-A89F-4FB764735100}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D0B8AA57-9D8A-4610-9CEF-9F5C6C3D1873}
+	EndGlobalSection
+EndGlobal
