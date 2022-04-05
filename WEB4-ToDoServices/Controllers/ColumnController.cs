@@ -10,38 +10,124 @@ namespace WEB4_ToDoServices.Controllers
     [ApiController]
     public class ColumnController : ControllerBase
     {
+        static public List<Column> _columns = new List<Column> {
+            new Column{
+                Id = 5,
+                Titel = "column 5",
+                BoardId = 3,
+                Cards = new List<Card> {
+                    new Card{
+                    Id = 10,
+                    Title = "test",
+                    Notes = "test notes",
+                    Status = "Done",
+                    DateChanged = DateTime.Now,
+                    DateCreated = DateTime.Now,
+                    ColumnId = 5,
+                    },
+                    new Card{
+                    Id = 11,
+                    Title = "test 11",
+                    Notes = "test notes 11",
+                    Status = "Done",
+                    DateChanged = DateTime.Now,
+                    DateCreated = DateTime.Now,
+                    ColumnId = 5,
+                    }
+                }
+            },
+            new Column{
+                Id = 1,
+                Titel = "column 1",
+                BoardId = 2,
+                Cards = new List<Card> {
+                    new Card{
+                    Id = 1,
+                    Title = "test",
+                    Notes = "test notes",
+                    Status = "Done",
+                    DateChanged = DateTime.Now,
+                    DateCreated = DateTime.Now,
+                    ColumnId = 1,
+                    },
+                    new Card{
+                    Id = 12,
+                    Title = "test 12",
+                    Notes = "test notes 12",
+                    Status = "Done",
+                    DateChanged = DateTime.Now,
+                    DateCreated = DateTime.Now,
+                    ColumnId = 1,
+                    }
+                }
+            },
+            new Column
+            {
+                Id = 2,
+                Titel = "column 2",
+                BoardId = 1,
+                Cards = null
+            }
+        };
 
-        
-        // GET: api/<ColumnController>
-        [HttpGet]
-        public IEnumerable<string> Get()
-        {
-            return new string[] { "value1", "value2" };
-        }
-
-        // GET api/<ColumnController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public ActionResult<Column> GetColumn(int id)
         {
-            return "value";
+            var column = _columns.Find(x => x.Id == id);
+            if (column == null)
+                return NotFound("Deze cards bestaan niet");
+            return Ok(column);
         }
 
-        // POST api/<ColumnController>
+        [HttpGet("{id}/cards")]
+        public ActionResult<List<Card>> GetCardsByColumn(int id)
+        {
+            var cards = _columns.Find(x => x.Id == id).Cards;
+            if (cards == null)
+                return NotFound("Deze cards bestaan niet");
+            return Ok(cards);
+        }
+
+        [HttpGet("{id}/cards/{status}")]
+        public ActionResult<List<Card>> GetCardsByColumnWithSpecificStatus(int id,string status)
+        {
+            var cards = _columns.Find(x => x.Id == id).Cards.Where(y => y.Status.Equals(status));
+            if (cards == null)
+                return NotFound("Deze kolom bestaat niet");
+            return Ok(cards);
+        }
+
+
         [HttpPost]
-        public void Post([FromBody] string value)
+        public ActionResult<List<Column>> CreateColumn(Column column)
         {
+            _columns.Add(column);
+            return Ok(_columns);
         }
 
-        // PUT api/<ColumnController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        [HttpPut]
+        public ActionResult<List<Column>> UpdateColumn(Column updatedColumn)
         {
+            var column = _columns.Find(x => x.Id == updatedColumn.Id);
+            if (column == null)
+                return NotFound("Deze column bestaat niet");
+
+            column.Titel = updatedColumn.Titel;
+
+            return Ok(_columns);
         }
+
 
         // DELETE api/<ColumnController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
+        [HttpDelete("column/{id}")]
+        public ActionResult<List<Column>> DeleteColumn(int id)
         {
+            var column = _columns.Find(x => x.Id == id);
+            if (column == null)
+                return NotFound("Deze collom bestaat niet");
+            _columns.Remove(column);
+
+            return Ok(_columns);
         }
     }
 }

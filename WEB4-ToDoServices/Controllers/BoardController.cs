@@ -8,7 +8,7 @@ namespace WEB4_ToDoServices.Controllers
     [ApiController]
     public class BoardController : ControllerBase
     {
-        private List<Board> _boards = new List<Board> {
+        static public List<Board> _boards = new List<Board> {
                 new Board{
                     Id = 1,
                     Name = "board 1",
@@ -78,15 +78,58 @@ namespace WEB4_ToDoServices.Controllers
                 }
         };
         [HttpGet]
-        public async Task<ActionResult<List<Board>>> GetAll()
-        {
-      
+        public ActionResult<List<Board>> GetAll()
+        {    
             return _boards;
         }
+
+        [HttpGet("{id}")]
+        public ActionResult<Board> GetBoard(int id)
+        {
+            var board = _boards.Find(x => x.Id == id);
+            if(board == null)
+                return NotFound("Dit board bestaat niet");
+            return Ok(board);
+        }
+
+        [HttpGet("{id}/columns")]
+        public ActionResult<List<Column>> GetColumnsByBoard(int id)
+        {
+            var columns = _boards.Find(x => x.Id == id).Columns;
+            if (columns == null)
+                return NotFound("Deze kolom bestaat niet");
+            return Ok(columns);
+        }
+
+        [HttpPost]
+        public ActionResult<List<Board>> CreateBoard(Board board)
+        {
+            _boards.Add(board);
+            return Ok(_boards);
+        }
         
+        [HttpPut]
+        public ActionResult<List<Board>> UpdateBoard(Board updatedBoard)
+        {
+            var board = _boards.Find(x => x.Id == updatedBoard.Id);
+            if (board == null)
+                return NotFound("Dit board bestaat niet");
 
+            board.Name = updatedBoard.Name;
 
+            return Ok(_boards);
+        }
 
+        [HttpDelete("{id}")]
+        public ActionResult<List<Board>> DeleteBoard(int id)
+        {
+            var board = _boards.Find(x => x.Id == id);
+            if(board == null)
+                return NotFound("Dit board bestaat niet");
+            _boards.Remove(board);
+
+            return Ok(_boards);
+        }
     }
 }
 

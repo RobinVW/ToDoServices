@@ -8,7 +8,7 @@
         public string Status { get; set; }
         public DateTime DateCreated { get; set; }
         public DateTime DateChanged { get; set; }
-        public int ColumnId { get; set; }
-        public Column Column { get; set; }
+        public int ?ColumnId { get; set; }
+        public Column ?Column { get; set; }
     }
 }
