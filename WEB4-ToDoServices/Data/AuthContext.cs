@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace JWTAuthentication.NET6._0.Auth
+//namespace JWTAuthentication.NET6._0.Auth
+namespace WEB4_ToDoServices.Data
 {
     public class AuthContext : IdentityDbContext<IdentityUser>
     {

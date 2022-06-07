@@ -1,4 +1,3 @@
-using JWTAuthentication.NET6._0.Auth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
