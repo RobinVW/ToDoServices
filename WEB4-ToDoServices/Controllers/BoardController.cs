@@ -1,135 +1,148 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
+using WEB4_ToDoServices.Data;
 using WEB4_ToDoServices.Models;
+using WEB4_ToDoServices.Models.DTO;
 
 namespace WEB4_ToDoServices.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BoardController : ControllerBase
     {
-        static public List<Board> _boards = new List<Board> {
-                new Board{
-                    Id = 1,
-                    Name = "board 1",
-                    Columns = new List<Column> {
-                        new Column{
-                              Id = 1,
-                              Titel = "column 1",
-                              BoardId = 1,
-                              Cards = new List<Card> {
-                                 new Card{
-                                    Id = 1,
-                                    Title = "test",
-                                    Notes = "test notes",
-                                    Status = "Done",
-                                    DateChanged = DateTime.Now,
-                                    DateCreated = DateTime.Now,
-                                    ColumnId = 1,
-                                 },
-                                 new Card{
-                                    Id = 2,
-                                    Title = "test 2",
-                                    Notes = "test notes 2",
-                                    Status = "Done",
-                                    DateChanged = DateTime.Now,
-                                    DateCreated = DateTime.Now,
-                                    ColumnId = 1,
-                                 }
-                              }
-                        }
-                    }
-                },
-                new Board{
-                    Id = 2,
-                    Name = "board 2",
-                    Columns = null
-                },
-                new Board{
-                    Id = 3,
-                    Name = "board 3",
-                    Columns = new List<Column> {
-                        new Column{
-                              Id = 5,
-                              Titel = "column 5",
-                              BoardId = 3,
-                              Cards = new List<Card> {
-                                 new Card{
-                                    Id = 10,
-                                    Title = "test",
-                                    Notes = "test notes",
-                                    Status = "Done",
-                                    DateChanged = DateTime.Now,
-                                    DateCreated = DateTime.Now,
-                                    ColumnId = 5,
-                                 },
-                                 new Card{
-                                    Id = 11,
-                                    Title = "test 11",
-                                    Notes = "test notes 11",
-                                    Status = "Done",
-                                    DateChanged = DateTime.Now,
-                                    DateCreated = DateTime.Now,
-                                    ColumnId = 5,
-                                 }
-                              }
-                        }
-                    }
-                }
-        };
+        private readonly ToDoContext _context;
+        private readonly string _userId;
+
+        public BoardController(ToDoContext context, IHttpContextAccessor httpContextAccessor)
+        {
+            _context = context;
+            _userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        
         [HttpGet]
-        public ActionResult<List<Board>> GetAll()
-        {    
-            return _boards;
+        public async Task<ActionResult<IEnumerable<Board>>> GetAll()
+        {
+            return await _context.Boards.Where(i => i.UserId == _userId).ToListAsync();
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Board> GetBoard(int id)
+        public async Task<ActionResult<Board>> GetBoard(int id)
         {
-            var board = _boards.Find(x => x.Id == id);
-            if(board == null)
+            var board = await _context.Boards.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+            if (board == null)
                 return NotFound("Dit board bestaat niet");
-            return Ok(board);
+            return board;
         }
 
-        [HttpGet("{id}/columns")]
-        public ActionResult<List<Column>> GetColumnsByBoard(int id)
+        [HttpGet("{id}/Columns")]
+        public async Task<ActionResult<List<Column>>> GetColumnsByBoard(int id)
         {
-            var columns = _boards.Find(x => x.Id == id).Columns;
+            var board = await _context.Boards.FindAsync(id);
+            if (board == null || board.UserId != _userId)
+                return NotFound("Deze kolommen bestaan niet");
+
+            var columns = board.Columns.Where(i => i.UserId == _userId);
             if (columns == null)
-                return NotFound("Deze kolom bestaat niet");
+                return NotFound("Deze kolommen bestaat niet");
             return Ok(columns);
         }
 
         [HttpPost]
-        public ActionResult<List<Board>> CreateBoard(Board board)
+        public async Task<ActionResult<BoardDTO>> CreateBoard(BoardDTO boardDTO)
         {
-            _boards.Add(board);
-            return Ok(_boards);
+            var board = new Board
+            {
+                Name = boardDTO.Name,
+                UserId = _userId,
+                Columns = null
+            };
+
+            _context.Boards.Add(board);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetBoard), new { id = board.Id }, board);
         }
-        
-        [HttpPut]
-        public ActionResult<List<Board>> UpdateBoard(Board updatedBoard)
+
+        [HttpPost("{id}/Column")]
+        public async Task<ActionResult<ColumnDTO>> AddColumnToBoard(int id, ColumnDTO columnDTO)
         {
-            var board = _boards.Find(x => x.Id == updatedBoard.Id);
+            var board = await _context.Boards.FindAsync(id);
+            if (board == null || board.UserId != _userId)
+            {
+                return NotFound();
+            }
+
+            var column = new Column
+            {
+                Titel = columnDTO.Titel,
+                UserId = _userId,
+                BoardId = board.Id,
+                Cards = null
+            };
+
+
+            _context.Columns.Add(column);
+            await _context.SaveChangesAsync();
+
+            return Created(nameof(column), _context.Columns.Find(id));
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateBoard(int id, BoardDTO boardDTO)
+        {
+            /*if (id != board.Id)
+            {
+                return BadRequest();
+            }*/
+
+            var board = await _context.Boards.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+
             if (board == null)
-                return NotFound("Dit board bestaat niet");
+            {
+                return NotFound();
+            }
 
-            board.Name = updatedBoard.Name;
+            board.Name = boardDTO.Name;
 
-            return Ok(_boards);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) when (!BoardExists(id))
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public ActionResult<List<Board>> DeleteBoard(int id)
+        public async Task<IActionResult> DeleteBoard(int id)
         {
-            var board = _boards.Find(x => x.Id == id);
-            if(board == null)
+            var board = await _context.Boards.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+            if (board == null)
                 return NotFound("Dit board bestaat niet");
-            _boards.Remove(board);
+            _context.Boards.Remove(board);
+            await _context.SaveChangesAsync();
 
-            return Ok(_boards);
+            return NoContent();
         }
+
+        private bool BoardExists(int id)
+        {
+            return _context.Boards.Any(e => e.Id == id && e.UserId == _userId);
+        }
+
+        private static BoardDTO BoardDTO(Board board) =>
+            new BoardDTO
+            {
+                Name = board.Name
+            };
     }
 }
 

@@ -1,6 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.Security.Claims;
+using WEB4_ToDoServices.Data;
 using WEB4_ToDoServices.Models;
+using WEB4_ToDoServices.Models.DTO;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -10,124 +14,130 @@ namespace WEB4_ToDoServices.Controllers
     [ApiController]
     public class ColumnController : ControllerBase
     {
-        static public List<Column> _columns = new List<Column> {
-            new Column{
-                Id = 5,
-                Titel = "column 5",
-                BoardId = 3,
-                Cards = new List<Card> {
-                    new Card{
-                    Id = 10,
-                    Title = "test",
-                    Notes = "test notes",
-                    Status = "Done",
-                    DateChanged = DateTime.Now,
-                    DateCreated = DateTime.Now,
-                    ColumnId = 5,
-                    },
-                    new Card{
-                    Id = 11,
-                    Title = "test 11",
-                    Notes = "test notes 11",
-                    Status = "Done",
-                    DateChanged = DateTime.Now,
-                    DateCreated = DateTime.Now,
-                    ColumnId = 5,
-                    }
-                }
-            },
-            new Column{
-                Id = 1,
-                Titel = "column 1",
-                BoardId = 2,
-                Cards = new List<Card> {
-                    new Card{
-                    Id = 1,
-                    Title = "test",
-                    Notes = "test notes",
-                    Status = "Done",
-                    DateChanged = DateTime.Now,
-                    DateCreated = DateTime.Now,
-                    ColumnId = 1,
-                    },
-                    new Card{
-                    Id = 12,
-                    Title = "test 12",
-                    Notes = "test notes 12",
-                    Status = "Done",
-                    DateChanged = DateTime.Now,
-                    DateCreated = DateTime.Now,
-                    ColumnId = 1,
-                    }
-                }
-            },
-            new Column
-            {
-                Id = 2,
-                Titel = "column 2",
-                BoardId = 1,
-                Cards = null
-            }
-        };
+        private readonly ToDoContext _context;
+        private readonly string _userId;
+
+        public ColumnController(ToDoContext context, IHttpContextAccessor httpContextAccessor)
+        {
+            _context = context;
+            _userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
 
         [HttpGet("{id}")]
-        public ActionResult<Column> GetColumn(int id)
+        public async Task<ActionResult<Column>> GetColumn(int id)
         {
-            var column = _columns.Find(x => x.Id == id);
+            var column = await _context.Columns.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
             if (column == null)
-                return NotFound("Deze cards bestaan niet");
-            return Ok(column);
+                return NotFound("Deze kolom bestaat niet");
+            return column;
         }
 
         [HttpGet("{id}/cards")]
-        public ActionResult<List<Card>> GetCardsByColumn(int id)
+        public async Task<ActionResult<List<Card>>> GetCardsByColumn(int id)
         {
-            var cards = _columns.Find(x => x.Id == id).Cards;
+            var column = await _context.Columns.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+            if (column == null)
+                return NotFound("Deze cards bestaan niet");
+
+            var cards = column.Cards.Where(c => c.UserId == _userId);
             if (cards == null)
                 return NotFound("Deze cards bestaan niet");
             return Ok(cards);
         }
 
-        [HttpGet("{id}/cards/{status}")]
-        public ActionResult<List<Card>> GetCardsByColumnWithSpecificStatus(int id,string status)
+        /*[HttpGet("{id}/cards/{status}")]
+        public async Task<ActionResult<List<Card>>> GetCardsByColumnWithSpecificStatus(int id,string status)
         {
-            var cards = _columns.Find(x => x.Id == id).Cards.Where(y => y.Status.Equals(status));
+            var column = await _context.Columns.FindAsync(id);
+            if(column == null)
+            {
+                return NotFound("Deze cards bestaan niet");
+            }
+            var cards = column.Cards.Where(y => y.Status.Equals(status));
             if (cards == null)
                 return NotFound("Deze kolom bestaat niet");
             return Ok(cards);
-        }
+        }*/
 
 
-        [HttpPost]
+        /*[HttpPost]
         public ActionResult<List<Column>> CreateColumn(Column column)
         {
             _columns.Add(column);
             return Ok(_columns);
+        }*/
+        [HttpPost("{id}/card")]
+        public async Task<ActionResult<List<Card>>> AddCardToColumn(int id,CardDTO cardDTO)
+        {
+            var column = await _context.Columns.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+            if (column == null)
+            {
+                return NotFound();
+            }
+
+            var card = new Card
+            {
+                Title = cardDTO.Title,
+                ColumnId = column.Id,
+                UserId = _userId,
+            };
+
+            if (cardDTO.Notes != null)
+                card.Notes = cardDTO.Notes;
+
+            _context.Cards.Add(card);
+            await _context.SaveChangesAsync();
+
+            return Created(nameof(card), card);
         }
 
         [HttpPut]
-        public ActionResult<List<Column>> UpdateColumn(Column updatedColumn)
+        public async Task<IActionResult> UpdateColumn(int id, ColumnDTO columnDTO)
         {
-            var column = _columns.Find(x => x.Id == updatedColumn.Id);
+            var column = await _context.Columns.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+
             if (column == null)
-                return NotFound("Deze column bestaat niet");
+            {
+                return NotFound();
+            }
 
-            column.Titel = updatedColumn.Titel;
+            column.Titel = columnDTO.Titel;
 
-            return Ok(_columns);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) when (!ColumnExists(id))
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
 
 
         // DELETE api/<ColumnController>/5
-        [HttpDelete("column/{id}")]
-        public ActionResult<List<Column>> DeleteColumn(int id)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteColumn(int id)
         {
-            var column = _columns.Find(x => x.Id == id);
+            var column = await _context.Columns.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
             if (column == null)
-                return NotFound("Deze collom bestaat niet");
-            _columns.Remove(column);
+                return NotFound("Deze kolom bestaat niet");
+            _context.Columns.Remove(column);
+            await _context.SaveChangesAsync();
 
-            return Ok(_columns);
+            return NoContent();
         }
+
+        private bool ColumnExists(int id)
+        {
+            return _context.Columns.Any(e => e.Id == id && e.UserId == _userId);
+        }
+
+        private static ColumnDTO ColumnDTO(Column column) =>
+            new ColumnDTO
+            {
+                Titel = column.Titel
+            };
     }
 }

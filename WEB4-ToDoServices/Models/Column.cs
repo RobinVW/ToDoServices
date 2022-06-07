@@ -5,8 +5,9 @@
         #region Properties
         public int Id { get; set; }
         public string Titel { get; set; }
+        public string UserId { get; set; }
         public int BoardId { get; set; }
-        public Board Board { get; set; }
+        /*public Board Board { get; set; }*/
         public ICollection<Card> ?Cards { get; set; }  = new List<Card>();      
         #endregion
 

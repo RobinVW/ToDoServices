@@ -1,76 +1,86 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using WEB4_ToDoServices.Models;
 using Microsoft.AspNetCore.Http;
+using WEB4_ToDoServices.Data;
+using WEB4_ToDoServices.Models.DTO;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace WEB4_ToDoServices.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CardController : Controller
     {
-        static public List<Card> _cards = new List<Card>
+        private readonly ToDoContext _context;
+        private readonly string _userId;
+
+        public CardController(ToDoContext context, IHttpContextAccessor httpContextAccessor)
         {
-            new Card{
-                Id = 10,
-                Title = "test",
-                Notes = "test notes",
-                Status = "Done",
-                DateChanged = DateTime.Now,
-                DateCreated = DateTime.Now,
-                ColumnId = 5,
-                },
-            new Card{
-                Id = 11,
-                Title = "test 11",
-                Notes = "test notes 11",
-                Status = "Done",
-                DateChanged = DateTime.Now,
-                DateCreated = DateTime.Now,
-                ColumnId = 5,
-            }
-        };
+            _context = context;
+            _userId = httpContextAccessor.HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
 
         [HttpGet("{id}")]
-        public ActionResult<Card> GetCard(int id)
+        public async Task<ActionResult<Card>> GetCard(int id)
         {
-            var card = _cards.Find(x => x.Id == id);
-            if(card == null)
+            var card = await _context.Cards.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
+            if (card == null)
                 return NotFound("Deze card bestaat niet");
             return Ok(card);    
         }
-
+        
         [HttpPut]
-        public ActionResult<List<Card>> UpdateCard(Card updatedCard)
+        public async Task<IActionResult> UpdateCard(int id, CardDTO cardDTO)
         {
-            var card = _cards.Find(x => x.Id == updatedCard.Id);
+            var card = await _context.Cards.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
             if (card == null)
                 return NotFound("Deze card bestaat niet");
-            card.Title = updatedCard.Title;
-            card.Notes = updatedCard.Notes;
-            card.Status = updatedCard.Status;
-            card.DateChanged = DateTime.Now;
-            card.ColumnId = updatedCard.ColumnId;
 
-            return Ok(_cards);
+            card.Title = cardDTO.Title;
+            card.ColumnId = card.ColumnId;
+            card.Notes = card.Notes;
+
+            if (cardDTO.Notes != null)
+                card.Notes = cardDTO.Notes;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) when (!CardExists(id))
+            {
+                return NotFound();
+            }
+
+            return NoContent();
         }
 
-
+        /*
         [HttpPost]
         public ActionResult<List<Card>> CreateCard(Card card)
         {
             _cards.Add(card);
             return Ok(_cards);
         }
+        */
 
         [HttpDelete("{id}")]
-        public ActionResult<List<Card>> DeleteCard(int id)
+        public async Task<IActionResult> DeleteCard(int id)
         {
-            var card = _cards.Find(x => x.Id == id);
+            var card = await _context.Cards.Where(i => i.Id == id && i.UserId == _userId).FirstOrDefaultAsync();
             if (card == null)
                 return NotFound("Deze card bestaat niet");
-            _cards.Remove(card);
+            _context.Cards.Remove(card);
+            await _context.SaveChangesAsync();
 
-            return Ok(_cards);
+            return NoContent();
+        }
+        private bool CardExists(int id)
+        {
+            return _context.Cards.Any(e => e.Id == id && e.UserId == _userId);
         }
     }
 }
