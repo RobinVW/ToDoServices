@@ -31,6 +31,15 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.Password.RequiredLength = 4;
     options.Password.RequiredUniqueChars = 0;
 });
+
+// Adding CORS
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAll",
+        b => b.AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowAnyOrigin());
+});
+
 // Adding Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -94,6 +103,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

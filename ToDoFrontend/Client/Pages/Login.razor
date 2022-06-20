@@ -1,0 +1,41 @@
+﻿@page "/login"
+@inject NavigationManager NavManager
+@inject IAuthenticationService authService
+
+<PageTitle>Login</PageTitle>
+
+<h3>Login</h3>
+<div class="col-xl-4 p-3">
+        <RadzenCard>
+            @*<h2 class="mb-4">Login with register</h2>*@
+            <RadzenTemplateForm Data=@("LoginWithRegister")>
+            <RadzenLogin AllowResetPassword="false" 
+                            Login=@(args => OnLogin(args, "Login with register")) 
+                            Register=@(args => OnRegister()) />
+            </RadzenTemplateForm>
+        </RadzenCard>
+</div>
+
+@code {
+    string userName = "admin";
+    string password = "admin";
+
+
+    async void OnLogin(LoginArgs args, string name)
+    {
+        LoginModel lm = new LoginModel();
+        lm.Username = args.Username;
+        lm.Password = args.Password;
+        var response = await authService.AuthenticateAsync(lm);
+
+        if (response.Success)
+        {        
+            NavManager.NavigateTo("/");
+        }
+    }
+
+    void OnRegister()
+    {
+        NavManager.NavigateTo("/register");
+    }
+}

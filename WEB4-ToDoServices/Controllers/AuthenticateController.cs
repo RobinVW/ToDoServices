@@ -29,7 +29,7 @@ namespace WEB4_ToDoServices.Controllers
 
         [HttpPost]
         [Route("login")]
-        public async Task<IActionResult> Login([FromBody] LoginModel model)
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginModel model)
         {
             var user = await _userManager.FindByNameAsync(model.Username);
             if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
@@ -50,13 +50,20 @@ namespace WEB4_ToDoServices.Controllers
 
                 var token = GetToken(authClaims);
 
-                return Ok(new
+                /*return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                     expiration = token.ValidTo
-                });
+                });*/
+                var response = new AuthResponse
+                {
+                    UserId = user.Id,
+                    Token = new JwtSecurityTokenHandler().WriteToken(token),
+                };
+
+                return response;
             }
-            return Unauthorized();
+            return Unauthorized(model);
         }
 
         [HttpPost]

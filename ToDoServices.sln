@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WEB4-ToDoServices", "WEB4-ToDoServices\WEB4-ToDoServices.csproj", "{F0721954-6CED-40D7-A89F-4FB764735100}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WEB4-ToDoServices", "WEB4-ToDoServices\WEB4-ToDoServices.csproj", "{F0721954-6CED-40D7-A89F-4FB764735100}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToDoFrontend.Client", "ToDoFrontend\Client\ToDoFrontend.Client.csproj", "{2A8D2540-F367-4E3E-BD5B-41C6371093DF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ToDoFrontend.Shared", "ToDoFrontend\Shared\ToDoFrontend.Shared.csproj", "{CEFD7422-4D92-4064-9AD6-EBE6AEECDE30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{F0721954-6CED-40D7-A89F-4FB764735100}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0721954-6CED-40D7-A89F-4FB764735100}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F0721954-6CED-40D7-A89F-4FB764735100}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2A8D2540-F367-4E3E-BD5B-41C6371093DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2A8D2540-F367-4E3E-BD5B-41C6371093DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2A8D2540-F367-4E3E-BD5B-41C6371093DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2A8D2540-F367-4E3E-BD5B-41C6371093DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CEFD7422-4D92-4064-9AD6-EBE6AEECDE30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CEFD7422-4D92-4064-9AD6-EBE6AEECDE30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CEFD7422-4D92-4064-9AD6-EBE6AEECDE30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CEFD7422-4D92-4064-9AD6-EBE6AEECDE30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

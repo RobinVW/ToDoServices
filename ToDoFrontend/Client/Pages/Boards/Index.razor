@@ -1,0 +1,117 @@
+﻿@page "/boards"
+@inject IBoardService boardService
+@inject IJSRuntime js
+@inject NavigationManager navManager
+@inject DialogService DialogService
+
+<h3>Boards</h3>
+@*@if (!response.succes)
+{
+    <p>You have no boards</p>
+}*@
+<RadzenButton Click=@AddBoard Text="Add board" />
+<div class="d-flex flex-wrap">
+    @foreach (var i in _boards)
+    {
+        <RadzenCard class="m-4 w-25 d-flex flex-column justify-content-center">
+            <h4>@i.Name</h4>
+            <div>
+                <RadzenButton Icon='info' Click=@(args => Details(i.Id))/>
+                <RadzenButton Icon='delete_forever' Click=@(args => DeleteBoard(i.Id,i.Name)) />
+            </div>
+        </RadzenCard>
+    }
+</div>
+
+
+@code {
+    public List<Board> _boards;
+    private Response<List<Board>> response = new Response<List<Board>>{};
+    private BoardDTO boardDTO = new BoardDTO();
+    string value;
+
+    protected override async Task OnInitializedAsync()
+    {
+        response = await boardService.GetAll();
+        if (response.Success)
+        {
+            _boards = response.Data;
+        }
+    }
+
+    async Task AddBoard()
+    {
+        //navManager.NavigateTo("/boards/create");
+        var result = await DialogService.OpenAsync("Add Board", ds =>
+        @<div>
+            <RadzenCard class="m-4">
+                <h4>Board Name:</h4>
+                <RadzenTextBox @bind-Value=@value Class="w-100" />
+            </RadzenCard>
+            <div class="row">
+                <div class="col">
+                    <RadzenButton Text="Ok" Click="() => {
+                        ds.Close(true);
+                        HandleCreateBoard();
+                    }" Class="mr-1" Style="width: 80px;" />
+                    <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Class="mr-1" />
+                </div>
+            </div>
+    </div>
+    ); 
+    }
+
+    async Task DeleteBoard(int id,string name)
+    {
+        var result = await DialogService.OpenAsync("Delete Board", ds =>
+        @<div>
+            <RadzenCard class="m-4">
+                <h4>Are you sure you want do delete board: @name</h4>
+            </RadzenCard>
+            <div class="row">
+                <div class="col">
+                    <RadzenButton Text="Ok" Click="() => {
+                        ds.Close(true);
+                        HandleDeleteBoard(id);
+                    }" Class="mr-1" Style="width: 80px;" />
+                    <RadzenButton Text="Cancel" Click="() => ds.Close(false)" ButtonStyle="ButtonStyle.Secondary" Class="mr-1" />
+                </div>
+            </div>
+    </div>
+    );
+    }
+
+    private async Task HandleCreateBoard()
+    {
+        boardDTO.Name = value;
+        var response = await boardService.Create(boardDTO);
+        if (response.Success)
+        {
+            //await OnInitializedAsync();
+            BackToList();
+        }
+    }
+
+    private async Task HandleDeleteBoard(int id)
+    {
+        var response = await boardService.Delete(id);
+        if (response.Success)
+        {
+            //await OnInitializedAsync();
+            BackToList();
+        }
+    }
+
+    private void BackToList()
+    {
+        navManager.NavigateTo("/boards/",forceLoad: true);
+    }
+
+    private void Details(int id)
+    {
+        navManager.NavigateTo("/board/"+id+"/columns");
+    }
+
+
+}
+

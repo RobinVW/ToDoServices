@@ -1,0 +1,24 @@
+﻿<AuthorizeView>
+    <Authorized>
+            <RadzenMenu class="d-flex justify-content-between mx-4">
+                <RadzenMenuItem Text="Home" Icon="home" Path="">   
+                </RadzenMenuItem>   
+                <div class="d-flex mx-4">
+                    <RadzenMenuItem Text=@context.User?.Identity?.Name Icon="account_box"></RadzenMenuItem>
+                    <RadzenMenuItem Text="Logout" Icon="logout" Path="logout">
+                    </RadzenMenuItem>  
+                </div> 
+            </RadzenMenu>
+    </Authorized>
+    <NotAuthorized>
+            <RadzenMenu class="d-flex justify-content-between mx-4">
+                <RadzenMenuItem Text="Home" Icon="home" Path="">   
+                </RadzenMenuItem>   
+                <RadzenMenuItem Text="Login" Icon="account_box" Path="login">
+                </RadzenMenuItem>   
+            </RadzenMenu>    
+    </NotAuthorized>
+</AuthorizeView>
+@code {
+
+}

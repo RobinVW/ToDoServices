@@ -25,7 +25,7 @@ namespace WEB4_ToDoServices.Controllers
 
         
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Board>>> GetAll()
+        public async Task<ActionResult<List<Board>>> GetAll()
         {
             return await _context.Boards.Where(i => i.UserId == _userId).ToListAsync();
         }
